@@ -1,43 +1,45 @@
-name: Deploy to AWS Elastic Beanstalk
+name: Deploy to Elastic Beanstalk
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '8.0'
+      - name: Run tests (optional)
+        # Add your testing commands here
 
-    - name: Install Elastic Beanstalk CLI
-      run: |
-        sudo apt-get update
-        sudo apt-get install python3-pip
-        pip3 install --upgrade awsebcli
+      - name: Build your application
+        # Replace with your specific build commands, e.g., dotnet build
 
-    - name: Set AWS Credentials
-      run: |
-        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+      - name: Configure AWS credentials
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID && aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
 
-    - name: Initialize Elastic Beanstalk
-      run: eb init -r us-east-1 -p "64bit Amazon Linux 2" test
+      - name: Create a deployment archive
+        # Replace with your specific archive creation command, e.g., zip -r deployment.zip .
 
-    - name: Build and Publish
-      run: dotnet publish -c Release -o out
+      - name: Deploy to Elastic Beanstalk
+        uses: actions/aws-ebextensions@v1
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          application-name: ${{ secrets.ELASTIC_BEANSTALK_APPLICATION_NAME }}
+          environment-name: ${{ secrets.ELASTIC_BEANSTALK_ENVIRONMENT_NAME }}
+          package: deployment.zip
 
-    - name: Deploy to AWS Elastic Beanstalk
-      run: |
-        eb deploy test
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Wait for deployment to complete (optional)
+        # Add your custom logic to wait for successful deployment
+
+secrets:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ELASTIC_BEANSTALK_APPLICATION_NAME: ${{ secrets.ELASTIC_BEANSTALK_APPLICATION_NAME }}
+  ELASTIC_BEANSTALK_ENVIRONMENT_NAME: ${{ secrets.ELASTIC_BEANSTALK_ENVIRONMENT_NAME }}
