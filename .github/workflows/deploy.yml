@@ -18,16 +18,18 @@ jobs:
       with:
         dotnet-version: '8.0'
 
-    - name: Install Elastic Beanstalk CLI
+    - name: Install Elastic Beanstalk CLI and AWS CLI
       run: |
         sudo apt-get update
         sudo apt-get install python3-pip
         pip3 install --upgrade awsebcli
+        sudo apt-get install awscli
 
-    - name: Set AWS Credentials
-      run: |
-        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+    - name: Set AWS Credentials for Elastic Beanstalk
+      run: eb configure set AWS_ACCESS_KEY_ID ${{ secrets.AWS_ACCESS_KEY_ID }} && eb configure set AWS_SECRET_KEY ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Set AWS Credentials for AWS CLI
+      run: aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} && aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Initialize Elastic Beanstalk
       run: eb init -r us-east-1 -p "64bit Amazon Linux 2" test
@@ -38,8 +40,6 @@ jobs:
     - name: Beanstalk Deploy for app
       uses: einaregilsson/beanstalk-deploy@v16
       with:
-        aws_access_key: ${{secrets.ACCESS_KEY_ID}}
-        aws_secret_key: ${{secrets.SECRET_ACCESS_KEY}}
         application_name: ${{ secrets.ELASTIC_BEANSTALK_APPLICATION_NAME }}
         environment_name: ${{ secrets.ELASTIC_BEANSTALK_ENVIRONMENT_NAME }}
         region: us-east-1
