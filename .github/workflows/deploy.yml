@@ -25,7 +25,8 @@ jobs:
         pip3 install --upgrade awsebcli
 
     - name: Initialize Elastic Beanstalk
-      run: eb init -r us-east-1 -p "64bit Amazon Linux 2" test
+      #run: eb init -r us-east-1 -p "64bit Amazon Linux 2" test
+      run: eb init -r us-east-1 -p "64bit Amazon Linux 2" --region us-east-1 --platform "64bit Amazon Linux 2" --accesskey ${{ secrets.AWS_ACCESS_KEY_ID }} --secretkey ${{ secrets.AWS_SECRET_ACCESS_KEY }} test
 
     - name: Build and Publish
       run: dotnet publish -c Release -o out
