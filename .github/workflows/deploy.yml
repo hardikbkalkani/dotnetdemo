@@ -8,30 +8,37 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    environment:
+      name: test  # You can customize this (e.g., dev, staging)
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '8.0'
+        dotnet-version: '6.0'  # Adjust as needed for your project
 
-    - name: Install Elastic Beanstalk CLI and AWS CLI
+    - name: Install Prerequisites
       run: |
         sudo apt-get update
         sudo apt-get install python3-pip
         pip3 install --upgrade awsebcli
         sudo apt-get install awscli
 
-    - name: Set AWS Credentials for AWS CLI
+    - name: Set AWS Credentials from Secrets Manager
       run: |
-        aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+        SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-    - name: Initialize Elastic Beanstalk
-      run: eb init -r us-east-1 -p "64bit Amazon Linux 2" test
+        echo "export AWS_ACCESS_KEY_ID=$ACCESS_KEY_ID" >> $GITHUB_ENV
+        echo "export AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY" >> $GITHUB_ENV
+
+    - name: Initialize Elastic Beanstalk (Optional)
+      run: eb init -r us-east-1 -p "64bit Amazon Linux 2" test  # Optional if first deployment
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Build and Publish
       run: dotnet publish -c Release -o out
@@ -41,9 +48,12 @@ jobs:
       with:
         application_name: ${{ secrets.ELASTIC_BEANSTALK_APPLICATION_NAME }}
         environment_name: ${{ secrets.ELASTIC_BEANSTALK_ENVIRONMENT_NAME }}
-        region: us-east-1
+        region: ${{ secrets.REGION }}  # Use specific region if needed
         version_label: "e-learn-${{ steps.format-time.outputs.replaced }}"
         deployment_package: deploy.zip
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Clean Up Environment Variables (Optional)
+      run: |
+        # Remove sensitive environment variables after use
+        unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+
