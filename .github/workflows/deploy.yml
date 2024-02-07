@@ -23,19 +23,16 @@ jobs:
         sudo apt-get update
         sudo apt-get install python3-pip
         pip3 install --upgrade awsebcli
-      # Export the env variables required
-      # by the EB CLI
-        export AWS_ACCESS_KEY_ID="MY_ACCESS_KEY_ID"
-        export AWS_SECRET_ACCESS_KEY="MY_SECRET_ACCESS_KEY"
-        export AWS_DEFAULT_REGION="us-east-1"
+
     - name: Initialize Elastic Beanstalk
       run: eb init -r us-east-1 -p "64bit Amazon Linux 2" test
+
     - name: Build and Publish
       run: dotnet publish -c Release -o out
 
     - name: Deploy to AWS Elastic Beanstalk
       run: |
-        eb deploy test --region us-east-1
+        eb deploy test
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
