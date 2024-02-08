@@ -11,6 +11,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      EB_ENV_NAME: "test"  # Replace with your actual environment name
     steps:
       - uses: actions/checkout@v2
       - name: Debug Environment Variables
@@ -36,6 +37,7 @@ jobs:
       - name: Init EB CLI
         run: |
           eb init --platform "64bit Amazon Linux 2023 v3.0.3 running .NET 6" --region $AWS_DEFAULT_REGION
+          eb use $EB_ENV_NAME  # Set the default environment
       - name: Deploy to Elastic Beanstalk
         run: |
           eb deploy
