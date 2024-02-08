@@ -40,4 +40,4 @@ jobs:
           eb use $EB_ENV_NAME  # Set the default environment
       - name: Deploy to Elastic Beanstalk
         run: |
-          eb deploy --staged
+          eb deploy --app-00e6-240208_070408196003.zip
