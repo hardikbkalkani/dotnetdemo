@@ -35,7 +35,7 @@ jobs:
           pip install awsebcli
       - name: Init EB CLI
         run: |
-          eb init --platform "64bit Amazon Linux 2" --region $AWS_DEFAULT_REGION
+          eb init --platform "64bit Amazon Linux 2023 v3.0.3 running .NET 6" --region $AWS_DEFAULT_REGION
       - name: Deploy to Elastic Beanstalk
         run: |
           eb deploy
