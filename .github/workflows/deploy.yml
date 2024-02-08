@@ -2,7 +2,7 @@ name: EB deploy
 
 on:
   push:
-    branches: [master]
+    branches: [main]
 
 jobs:
   deploy:
